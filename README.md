@@ -23,3 +23,5 @@ git commit -m "anything you want to say!"
 ```
 
 然后快捷键`Ctrl+Shift+G`打开源代码管理，点击提交，这里如果报错就关掉梯子，然后重新提交就可以看到`github`上面更新了你的代码。
+
+如果关闭梯子也无法正常提交代码，尝试添加SSH秘钥，详见`About SSH.md`。
