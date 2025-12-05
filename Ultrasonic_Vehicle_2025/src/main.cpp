@@ -1,15 +1,17 @@
-#include <Arduino.h>
-#include "main_controller.h"
-#include "pid_controller.h"
+// test_motor.ino - 电机测试程序
 #include "motor_controller.h"
-#include "ultrasonic_controller.h"
 
-void setup() 
-{
-  
+MotorController motor;
+
+void setup() {
+    Serial.begin(115200);
+    delay(1000);
+
+    motor.init();
 }
 
-void loop() 
-{
-
+void loop() {
+    motor.forward(50);
+    delay(1000);
+    // 空闲
 }
