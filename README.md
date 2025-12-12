@@ -30,9 +30,16 @@
 
 ## tips:
 
+### 关于代码的上传
+
+**每次修改代码之前，先在源代码管理中点击“拉取”，同步最新进度**。
+
+![alt text](Markdown_Image\image.png)
+
 提交代码的时候，在`vscode`中右键点击`Ultrasonic_Vehicle_2025`文件夹，选择“在集成终端中打开”选项。
 
 在终端输入
+
 ```bash
 git add .
 git commit -m "anything you want to say!"
@@ -41,3 +48,7 @@ git commit -m "anything you want to say!"
 然后快捷键`Ctrl+Shift+G`打开源代码管理，点击提交，这里如果报错就关掉梯子，然后重新提交就可以看到`github`上面更新了你的代码。
 
 如果关闭梯子也无法正常提交代码，尝试添加SSH秘钥，详见`About SSH.md`。或者你也可以**关闭SJTU网，然后连接手机流量热点提交。我感觉大概率是校园网限制的问题**。烦死了，早知道用Gitee了……
+
+### 关于 Platform IO 的使用
+
+详见 `Platformio.md` 文件，也可以看老师发的金山文档里的`csdn`网站。
