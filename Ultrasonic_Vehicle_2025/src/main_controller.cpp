@@ -3,7 +3,11 @@
 main_controller::main_controller() 
     : currentState(STATE_SEARCH),
       lastStateChangeTime(0),
-      targetDistance(FOLLOW_TARGET_DISTANCE) 
+      targetDistance(FOLLOW_TARGET_DISTANCE),
+      directionPid(nullptr),
+      targetDirection(0.0),
+      currentDirection(0.0),
+      pidOutput(0.0)
     {}
 
 // ================= 初始化 =================
@@ -11,13 +15,22 @@ void main_controller::init()
 {
     Serial.begin(SERIAL_BAUDRATE);
     
-    // 初始化子系统
     sonic.init();
     motor.init();
     sonic.startMeasurement();
+    initPID();
     
     currentState = STATE_SEARCH;
     lastStateChangeTime = millis();
+}
+
+// ================= PID初始化 =================
+void main_controller::initPID()
+{
+    directionPid = new pid_controller(&targetDirection, &pidOutput);
+    
+    directionPid->SetK(PID_KP, PID_KI, PID_KD);
+    directionPid->SetL(100.0, -BASE_SPEED, BASE_SPEED);
 }
 
 // ================= 主控制循环 =================
@@ -32,11 +45,9 @@ void main_controller::update()
     case STATE_SEARCH:
         handleSearchState();
         break;
-        
     case STATE_FOLLOW:
         handleFollowState();
         break;
-        
     case STATE_STOP:
         handleStopState();
         break;
@@ -55,42 +66,44 @@ void main_controller::handleSearchState()
     
     // 没有信号，原地旋转搜索
     searchRotation();
-    
-    // 每2秒输出一次搜索状态
-    static uint32_t lastPrintTime = 0;
-    uint32_t now = millis();
-    if (now - lastPrintTime > 2000) lastPrintTime = now;
 }
 
-// ================= 跟随状态 =================
+// ================= 跟随状态（使用PID控制） =================
 void main_controller::handleFollowState() 
 {
-    // 检查信号是否丢失
     if (!sonic.hasValidSignal()) 
     {
         setState(STATE_SEARCH);
         return;
     }
     
-    // 获取方向偏差
-    float directionBias = sonic.getDirectionBias();
+    // 获取当前方向偏差
+    // directionBias: -1.0（完全偏左）到 1.0（完全偏右），0表示在中间
+    currentDirection = sonic.getDirectionBias();
     
-    // 简单的跟随控制算法
-    int baseSpeed = BASE_SPEED;
-    int leftSpeed = baseSpeed;
-    int rightSpeed = baseSpeed;
+    // 使用PID计算控制输出
+    // PID目标：让 currentDirection 接近 0（信号在中间）
+    directionPid->Calc(currentDirection);
     
-    // 根据方向偏差调整左右轮速度
-    if (fabs(directionBias) > 0.1) 
+    // pidOutput 现在包含PID控制器的输出值
+    // 正值：需要右转（减小正偏差或增大负偏差）
+    // 负值：需要左转（减小负偏差或增大正偏差）
+    
+    // 根据PID输出调整左右轮速度
+    // 如果 pidOutput > 0，需要右转：左轮加速，右轮减速
+    // 如果 pidOutput < 0，需要左转：右轮加速，左轮减速
+    int leftSpeed = BASE_SPEED - pidOutput;
+    int rightSpeed = BASE_SPEED + pidOutput;
+    
+    // 限制速度范围
+    leftSpeed = constrain(leftSpeed, -MAX_SPEED, MAX_SPEED);
+    rightSpeed = constrain(rightSpeed, -MAX_SPEED, MAX_SPEED);
+    
+    // 如果方向偏差很小，可以稍微降低速度
+    if (fabs(currentDirection) < 0.05) 
     {
-        // 有显著偏差，需要转向
-        float turnFactor = 100.0 * directionBias;
-        leftSpeed -= turnFactor;
-        rightSpeed += turnFactor;
-        
-        // 限制速度范围
-        leftSpeed = constrain(leftSpeed, -MAX_SPEED, MAX_SPEED);
-        rightSpeed = constrain(rightSpeed, -MAX_SPEED, MAX_SPEED);
+        leftSpeed = BASE_SPEED;
+        rightSpeed = BASE_SPEED;
     }
     
     // 执行移动
@@ -107,21 +120,9 @@ void main_controller::handleStopState()
 void main_controller::setState(ControlState newState) 
 {
     if (currentState == newState) return;
+
+    motor.stop();
     
-    // 退出当前状态的处理
-    switch (currentState) 
-    {
-    case STATE_SEARCH:
-        motor.stop();
-        break;
-    case STATE_FOLLOW:
-        motor.stop();
-        break;
-    case STATE_STOP:
-        break;
-    }
-    
-    // 更新状态
     currentState = newState;
     lastStateChangeTime = millis();
 }
@@ -129,37 +130,12 @@ void main_controller::setState(ControlState newState)
 // ================= 搜索旋转 =================
 void main_controller::searchRotation() 
 {
-    // 简单的左右交替旋转搜索
-    static bool rotateRight = true;
-    static uint32_t lastRotateTime = 0;
-    uint32_t now = millis();
-    
-    if (now - lastRotateTime > 1000) 
-    {
-        // 每1秒切换旋转方向
-        rotateRight = !rotateRight;
-        lastRotateTime = now;
-    }
-    
-    // 执行旋转
-    if (rotateRight) 
-    {
-        // 右转
-        motor.setLeftSpeed(BASE_SPEED / 2);
-        motor.setRightSpeed(-BASE_SPEED / 2);
-    } 
-    else 
-    {
-        // 左转
-        motor.setLeftSpeed(-BASE_SPEED / 2);
-        motor.setRightSpeed(BASE_SPEED / 2);
-    }
+    moveCar(BASE_SPEED / 2, -BASE_SPEED / 2);
 }
 
 // ================= 移动控制 =================
 void main_controller::moveCar(int leftSpeed, int rightSpeed) 
 {
-    // 直接设置电机速度
     motor.setLeftSpeed(leftSpeed);
     motor.setRightSpeed(rightSpeed);
 }

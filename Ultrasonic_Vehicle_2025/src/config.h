@@ -11,8 +11,17 @@
 
 // ================= 超声波引脚 =================
 // ESP32所有引脚都支持外部中断
-#define ULTRASONIC_RX1_PIN 27   // GPIO27 - 超声波接收1（外部中断）
-#define ULTRASONIC_RX2_PIN 14   // GPIO14 - 超声波接收2（外部中断）
+#define ULTRASONIC_RX_LEFT_PIN  27   // GPIO27 - 左超声波接收（外部中断）
+#define ULTRASONIC_RX_RIGHT_PIN 14   // GPIO14 - 右超声波接收（外部中断）
+
+// ================= 时间测量参数 =================
+#define TIME_RESOLUTION_US 1         // 时间分辨率1μs
+#define MAX_TIME_DIFFERENCE 10000    // 最大时间差10ms（约3.4米距离差）
+#define SPEED_OF_SOUND 0.0343        // 声速（cm/μs）
+
+// ================= 位置计算参数 =================
+#define RECEIVER_SPACING 10.0        // 两个接收器间距（cm）
+#define ANGLE_MAX 60.0               // 最大可检测角度（度）
 
 // ================= 系统参数 =================
 #define MAX_SPEED 255          // 最大PWM值

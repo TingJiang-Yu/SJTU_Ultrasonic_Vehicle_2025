@@ -5,15 +5,18 @@
 #include "config.h"
 #include "motor_controller.h"
 #include "ultrasonic_controller.h"
+#include "pid_controller.h"
 
 class main_controller
 {
 private:
     motor_controller motor;
     ultrasonic_controller sonic;
+    pid_controller* directionPid;  // 方向PID控制器
     
     // 控制状态
-    enum ControlState {
+    enum ControlState 
+    {
         STATE_SEARCH,    // 搜索信号
         STATE_FOLLOW,    // 跟随信号
         STATE_STOP       // 停止
@@ -22,6 +25,11 @@ private:
     ControlState currentState;
     uint32_t lastStateChangeTime;
     float targetDistance;
+    
+    // PID控制变量
+    float targetDirection;      // 目标方向（应该为0，表示信号在中间）
+    float currentDirection;     // 当前方向
+    float pidOutput;            // PID输出
     
 public:
     main_controller();
@@ -47,6 +55,9 @@ private:
     // 控制小车行动
     void moveCar(int leftSpeed, int rightSpeed);
     void searchRotation();
+    
+    // PID初始化
+    void initPID();
 };
 
 #endif
