@@ -45,6 +45,10 @@
 
 ## tips:
 
+### 指导书网站
+
+https://www.kdocs.cn/l/cjcQNsTwbACK
+
 ### 关于代码的上传
 
 **每次修改代码之前，先在源代码管理中点击“拉取”，同步最新进度**。
@@ -66,4 +70,4 @@ git commit -m "anything you want to say!"
 
 ### 关于 Platform IO 的使用
 
-详见 `Platformio.md` 文件，也可以看老师发的金山文档里的`csdn`网站。
+详见 `Platformio.md` 文件，也可以看老师发的金山文档里的`csdn`网站 https://blog.csdn.net/wcc243588569/article/details/139234425。
