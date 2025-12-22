@@ -1,47 +1,38 @@
-#ifndef ULTRASONIC_TIME_DIFF_H
-#define ULTRASONIC_TIME_DIFF_H
+#ifndef ULTRASONIC_CONTROLLER_H
+#define ULTRASONIC_CONTROLLER_H
 
 #include <Arduino.h>
 #include "config.h"
 
-class ultrasonic_controller {
+class ultrasonic_controller
+{
 private:
-    // 引脚定义
     uint8_t leftPin;
     uint8_t rightPin;
-    
-    // 时间变量
+
     volatile unsigned long leftTime;
     volatile unsigned long rightTime;
     volatile bool leftDetected;
     volatile bool rightDetected;
-    
-    // 防抖时间
-    volatile unsigned long lastLeftTime;
-    volatile unsigned long lastRightTime;
-    unsigned long debounceTime;
-    
-    // 中断服务函数（声明为静态，但通过实例指针访问）
-    static void leftISR();
-    static void rightISR();
-    
+
+    // 中断服务函数
+    static void IRAM_ATTR leftISR();
+    static void IRAM_ATTR rightISR();
+
     static ultrasonic_controller* instance;
 
 public:
     ultrasonic_controller();
-    
+
     void init();
-    
+
+    // 是否获得了一次完整的左右检测
     bool available();
-    
-    // 获取时间差（微秒），正数表示左边先收到，负数表示右边先收到
+
+    // 获取左右到达时间差（μs）
     long getTimeDiff();
-    
-    // 获取原始时间戳（微秒）
-    unsigned long getLeftTime();
-    unsigned long getRightTime();
-    
-    // 手动重置检测标志
+
+    // 手动复位（一般不需要外部调用）
     void reset();
 };
 

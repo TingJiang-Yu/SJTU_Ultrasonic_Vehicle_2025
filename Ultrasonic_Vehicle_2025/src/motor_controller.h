@@ -1,4 +1,3 @@
-// MotorController.h - ESP32版本
 #ifndef MOTOR_CONTROLLER_H
 #define MOTOR_CONTROLLER_H
 
@@ -6,33 +5,27 @@
 #include "config.h"
 
 class motor_controller {
-private:
-    // 电机引脚
-    int leftAPin, leftBPin;
-    int rightAPin, rightBPin;
-    
-    // 当前状态
-    int currentLeftSpeed;
-    int currentRightSpeed;
-    bool leftDirection;  // true=前进, false=后退
-    bool rightDirection;
-
 public:
     motor_controller();
     void init();
-    void setSpeed(int leftSpeed, int rightSpeed);
-    void setSpeed(int speed);
-    void stop();
-    
-private:
-    // 速度控制
-    void setLeftSpeed(int speed);  // -255 to 255
-    void setRightSpeed(int speed); // -255 to 255
 
-    // 限制速度范围
-    int constrainSpeed(int speed);
-    
-    void brakeAllMotors();
+    // 设置转向分量（PID 输出）
+    void setTurn(int turn);
+
+    // 搜索模式：原地旋转
+    void search(int speed);
+
+    void stop();
+
+private:
+    int leftAPin, leftBPin;
+    int rightAPin, rightBPin;
+
+    int baseSpeed;
+    int turnSpeed;
+
+    void applyOutput();
+    void driveMotor(int pinA, int pinB, int speed);
 };
 
 #endif

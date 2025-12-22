@@ -1,20 +1,25 @@
 #include "main_controller.h"
 
-main_controller::main_controller() 
+#define SIGNAL_TIMEOUT_MS 300
+#define SEARCH_TURN_SPEED 80
+
+main_controller::main_controller()
 {
     pid = new pid_controller();
+    motor = new motor_controller();
+    ultrasonic = new ultrasonic_controller();
+
     dir_d = PID_DESIRED_DATA;
     dir_t = 0.0f;
     dir_output = 0.0f;
 
-    motor = new motor_controller();
-    ultrasonic = new ultrasonic_controller();
+    lastSignalTime = 0;
+    state = SEARCHING;
 }
 
-bool main_controller::init() 
+bool main_controller::init()
 {
     motor->init();
-
     ultrasonic->init();
 
     pid->init(&dir_d, &dir_output);
@@ -24,14 +29,35 @@ bool main_controller::init()
     return true;
 }
 
-bool main_controller::update() 
+bool main_controller::update()
 {
-    if (ultrasonic->available()) 
+    unsigned long now = millis();
+
+    if (ultrasonic->available())
     {
         long timeDiff = ultrasonic->getTimeDiff();
+        timeDiff = constrain(timeDiff, -MAX_TIME_DIFFERENCE, MAX_TIME_DIFFERENCE);
+
         dir_t = (float)timeDiff;
         pid->Calc(dir_t);
-        motor->setSpeed(dir_output);
+
+        motor->setTurn((int)dir_output);
+
+        lastSignalTime = now;
+        state = FOLLOWING;
     }
+    else
+    {
+        if (state == FOLLOWING && (now - lastSignalTime > SIGNAL_TIMEOUT_MS))
+        {
+            state = SEARCHING;
+        }
+
+        if (state == SEARCHING)
+        {
+            motor->search(SEARCH_TURN_SPEED);
+        }
+    }
+
     return true;
 }
