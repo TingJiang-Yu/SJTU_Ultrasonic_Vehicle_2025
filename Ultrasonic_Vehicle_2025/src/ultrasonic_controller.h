@@ -30,7 +30,7 @@ public:
     bool available();
 
     // 获取左右到达时间差（微秒）
-    long getTimeDiff();
+    int16_t getTimeDiff();
 
     // 手动复位（一般不需要外部调用）
     void reset();

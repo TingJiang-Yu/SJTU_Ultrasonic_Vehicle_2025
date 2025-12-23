@@ -32,13 +32,25 @@ bool main_controller::update()
 
     if (ultrasonic->available())
     {
-        long timeDiff = ultrasonic->getTimeDiff();
-        timeDiff = constrain(timeDiff, -MAX_TIME_DIFFERENCE, MAX_TIME_DIFFERENCE);
+        int16_t timeDiff = ultrasonic->getTimeDiff();
 
-        dir_t = (float)timeDiff;
+        if (timeDiff == 0) return false;
+
+        // 归一化时间差到 -1.0 到 1.0 之间
+        float dirNorm = (float)timeDiff / 32767.0f;
+        dirNorm = constrain(dirNorm, -1.0f, 1.0f);
+
+        // 死区处理
+        if (fabs(dirNorm) < PID_DEAD_ZONE) dirNorm = 0.0f;
+
+        // 低通滤波
+        dir_t = LPF_ALPHA * dirNorm + (1.0f - LPF_ALPHA) * dir_t;
+
         pid->Calc(dir_t);
 
-        motor->setTurn((int)dir_output);
+        int turn_output = (int)(dir_output * MOTOR_MAX_TURN_SPEED);
+
+        motor->setTurn((int)turn_output);
 
         lastSignalTime = now;
         state = FOLLOWING;

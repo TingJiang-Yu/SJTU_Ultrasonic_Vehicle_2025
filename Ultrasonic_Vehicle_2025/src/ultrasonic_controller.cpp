@@ -47,20 +47,27 @@ bool ultrasonic_controller::available()
     return leftDetected && rightDetected;
 }
 
-long ultrasonic_controller::getTimeDiff()
+int16_t ultrasonic_controller::getTimeDiff()
 {
+    // 还没有获得完整检测
+    if (!leftDetected || !rightDetected) return 0;
+
     long diff = 0;
 
-    if (leftDetected && rightDetected)
-    {
-        noInterrupts();
-        diff = (long)leftTime - (long)rightTime;
-        leftDetected = false;
-        rightDetected = false;
-        interrupts();
-    }
+    noInterrupts();
+    diff = (long)leftTime - (long)rightTime;
+    leftDetected = false;
+    rightDetected = false;
+    interrupts();
 
-    return diff;
+    // 限幅处理
+    if (diff > ULTRASONIC_MAX_TIME_DIFFERENCE) diff = ULTRASONIC_MAX_TIME_DIFFERENCE;
+    if (diff < -ULTRASONIC_MAX_TIME_DIFFERENCE) diff = -ULTRASONIC_MAX_TIME_DIFFERENCE;
+
+    // 映射到 -32767 到 32767 范围内
+    int32_t q15 = (diff * 32767L) / ULTRASONIC_MAX_TIME_DIFFERENCE;
+
+    return (int16_t)q15;
 }
 
 void ultrasonic_controller::reset()
