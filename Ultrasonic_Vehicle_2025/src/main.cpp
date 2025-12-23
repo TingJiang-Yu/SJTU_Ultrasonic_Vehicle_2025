@@ -13,7 +13,7 @@ void setup()
 
 void loop() 
 {
-    long timeDiff = usc.getTimeDiff();
+    uint16_t timeDiff = usc.getTimeDiff();
     Serial.print("Time diff: ");
     Serial.println(timeDiff);
     delay(500);
