@@ -1,3 +1,7 @@
+/*===================
+* main_controller.cpp
+=====================*/
+
 #include "main_controller.h"
 
 main_controller::main_controller()
@@ -30,18 +34,16 @@ bool main_controller::update()
 {
     unsigned long now = millis();
 
+    ultrasonic->checkSilence();
+
     if (ultrasonic->available())
     {
         int16_t timeDiff = ultrasonic->getTimeDiff();
 
-        if (timeDiff == 0) return false;
+        double dirNorm = (double)timeDiff / 32767.0;
+        dirNorm = constrain(dirNorm, -1.0, 1.0);
 
-        // 归一化时间差到 -1.0 到 1.0 之间
-        float dirNorm = (float)timeDiff / 32767.0f;
-        dirNorm = constrain(dirNorm, -1.0f, 1.0f);
-
-        // 死区处理
-        if (fabs(dirNorm) < PID_DEAD_ZONE) dirNorm = 0.0f;
+        if (fabs(dirNorm) < PID_DEAD_ZONE) dirNorm = 0.0;
 
         // 低通滤波
         dir_t = LPF_ALPHA * dirNorm + (1.0f - LPF_ALPHA) * dir_t;
@@ -50,7 +52,19 @@ bool main_controller::update()
 
         int turn_output = (int)(dir_output * MOTOR_MAX_TURN_SPEED);
 
-        motor->setTurn((int)turn_output);
+        Serial.print("car_state: ");
+        Serial.println(state);
+        Serial.print("time_diff: ");
+        Serial.println(timeDiff);
+        Serial.print("dir_norm: ");
+        Serial.println(dirNorm);
+        Serial.print("dir_t: ");
+        Serial.println(dir_t);
+        Serial.print("turn_output: ");
+        Serial.println(turn_output);
+        Serial.println();
+
+        motor->setTurn(turn_output);
 
         lastSignalTime = now;
         state = FOLLOWING;
@@ -65,8 +79,12 @@ bool main_controller::update()
         if (state == SEARCHING)
         {
             motor->search(SEARCH_TURN_SPEED);
+
+            Serial.println("car_state: SEARCHING");
         }
+            
     }
 
     return true;
 }
+

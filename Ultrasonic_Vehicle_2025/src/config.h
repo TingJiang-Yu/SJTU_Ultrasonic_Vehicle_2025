@@ -1,3 +1,7 @@
+/*===================
+* config.h
+=====================*/
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -12,7 +16,9 @@
 #define ULTRASONIC_RX_LEFT_PIN   34
 #define ULTRASONIC_RX_RIGHT_PIN  35
 
-#define ULTRASONIC_MAX_TIME_DIFFERENCE     5000   // us，异常时间差限幅
+#define ULTRASONIC_MAX_TIME_DIFFERENCE     500  // us，异常时间差限幅
+#define ULTRASONIC_TIMEDIFF_DEADZONE       10   // us，时间差死区
+#define ULTRASONIC_SILENCE_TIME            18   // us，静默时间
 
 /************************************************************
  * 3. 电机控制参数
@@ -29,27 +35,27 @@
 /************************************************************
  * 4. 行为状态机参数
  ************************************************************/
-#define SIGNAL_TIMEOUT_MS       300     // 判定信号丢失时间
+#define SIGNAL_TIMEOUT_MS       100     // 判定信号丢失时间
 #define SEARCH_TURN_SPEED       80      // 搜索时原地旋转速度
 
 /************************************************************
  * 5. PID 控制参数（方向）
  ************************************************************/
-#define PID_KP                  1.0f
-#define PID_KI                  0.0f
-#define PID_KD                  0.05f
+#define PID_KP                  2.0
+#define PID_KI                  0.01
+#define PID_KD                  0.05
 
-#define PID_MAX_INTEGRAL        1.0f
-#define PID_MIN_OUTPUT         -1.0f
-#define PID_MAX_OUTPUT          1.0f
+#define PID_MAX_INTEGRAL        1.0
+#define PID_MIN_OUTPUT         -1.0
+#define PID_MAX_OUTPUT          1.0
 
-#define PID_DEAD_ZONE           0.01f     // 输出死区
+#define PID_DEAD_ZONE           0.002    // 输出死区
 
-#define PID_DESIRED_DATA        0.0f     // 目标时间差（正对声源）
+#define PID_DESIRED_DATA        0.0    // 目标时间差（正对声源）
 
 /************************************************************
  * 6. 低通滤波参数
  ************************************************************/
-#define LPF_ALPHA               0.2f    // 低通滤波系数（0.0 - 1.0）
+#define LPF_ALPHA               0.6    // 低通滤波系数（0.0 - 1.0）
 
 #endif // CONFIG_H

@@ -1,21 +1,19 @@
+/*===================
+* main.cpp
+=====================*/
+
 #include <Arduino.h>
 #include "main_controller.h"
 
-main_controller ctrl;
-ultrasonic_controller usc;
+main_controller mc;
 
 void setup() 
 {
     Serial.begin(SERIAL_BAUDRATE);
-    usc.init();
-    // ctrl.init();
+    mc.init();
 }
 
 void loop() 
 {
-    uint16_t timeDiff = usc.getTimeDiff();
-    Serial.print("Time diff: ");
-    Serial.println(timeDiff);
-    delay(500);
-    // ctrl.update();
+    mc.update();
 }
