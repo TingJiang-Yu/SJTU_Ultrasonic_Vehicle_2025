@@ -5,7 +5,7 @@
 #define ULTRASONIC_FREQ_HZ      40000
 
 #define BURST_ON_MS             10
-#define BURST_OFF_MS            10
+#define BURST_OFF_MS            20
 
 static bool burstOn = false;
 static unsigned long lastSwitchTime = 0;
