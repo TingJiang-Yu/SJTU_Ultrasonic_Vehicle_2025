@@ -18,12 +18,8 @@
 \contentsline {section}{\numberline {A}小车程序源代码}{9}{}%
 \contentsline {subsection}{\numberline {A.1}main.cpp}{9}{}%
 \contentsline {subsection}{\numberline {A.2}main\_controller.h}{9}{}%
-\contentsline {subsection}{\numberline {A.3}main\_controller.cpp}{10}{}%
-\contentsline {subsection}{\numberline {A.4}motor\_controller.h}{12}{}%
-\contentsline {subsection}{\numberline {A.5}motor\_controller.cpp}{13}{}%
-\contentsline {subsection}{\numberline {A.6}ultrasonic\_controller.h}{15}{}%
-\contentsline {subsection}{\numberline {A.7}ultrasonic\_controller.cpp}{17}{}%
-\contentsline {subsection}{\numberline {A.8}pid\_controller.h}{20}{}%
-\contentsline {subsection}{\numberline {A.9}pid\_controller.cpp}{21}{}%
-\contentsline {subsection}{\numberline {A.10}config.h}{23}{}%
-\contentsline {section}{\numberline {B}超声波发生器程序源代码}{25}{}%
+\contentsline {subsection}{\numberline {A.3}motor\_controller.h}{10}{}%
+\contentsline {subsection}{\numberline {A.4}ultrasonic\_controller.h}{11}{}%
+\contentsline {subsection}{\numberline {A.5}pid\_controller.h}{13}{}%
+\contentsline {subsection}{\numberline {A.6}config.h}{14}{}%
+\contentsline {section}{\numberline {B}超声波发生器程序源代码}{16}{}%

@@ -113,7 +113,7 @@
      \noindent
      因此，该电路允许约 $50\,\text{kHz}$ 以上的信号通过，对低频信号具有明显抑制作用，适合用于 $40\sim60\,\text{kHz}$ 的超声波接收应用。
      
-   \begin{figure}[h]
+   \begin{figure}[ht]
    	\centering
    	\includegraphics[scale=0.25]{2.5v稳压电路.png}
    	\caption{2.5v偏置电路}
@@ -138,11 +138,11 @@
      \begin{equation}
      	v_{\text{out}}(t) = 2.5\,\text{V} \pm A_v V_m
      \end{equation}
-      \begin{figure}[h]
+      \begin{figure}[ht]
      	\centering
      	\includegraphics[scale=0.3]{比较脉冲电路.png}
      	\caption{放大电路}
-     	\label{fig:2.5v}
+     	\label{fig:compare_pause}
      \end{figure}
      
      
@@ -154,7 +154,7 @@
 
 本系统选用 \texttt{ESP32} 单片机作为核心控制器，负责超声波信号的采集、时间差计算、控制算法运算以及电机驱动信号的输出。
 
-在超声波信号采集方面，左右两个超声波接收电路输出经滤波与整形后的 $40kHz$ 数字脉冲信号，分别接入 ESP32 的外部中断引脚。
+在超声波信号采集方面，左右两个超声波接收电路输出经滤波与整形后的 $40kHz$ 数字脉冲信号，分别接入 \texttt{ESP32} 的外部中断引脚。
 单片机在检测到信号上升沿时记录当前时间，通过比较左右信号的到达时间差判断声源相对于小车的方向。
 
 小车的运动控制采用两轮差速驱动方式。电机驱动电路中，每个电机由单路 PWM 信号控制，其方向端在硬件上固定为正转状态。
@@ -199,17 +199,18 @@
 \subsection{超声波时间差检测模块}
 
 超声波检测模块基于外部中断方式实现。
-左右两个超声波接收通道分别接入单片机的外部中断引脚，当检测到经整形后的超声波脉冲信号上升沿时，
-通过微秒级定时函数记录当前时间。为避免多次触发干扰，每个接收通道在完成一次检测后暂时锁定，直至左右信号均被接收。
+左右两个超声波接收通道分别接入单片机的外部中断引脚，当检测到经整形后的超声波脉冲信号下降沿时，
+通过微秒级定时函数记录当前时间。为避免多次触发干扰，每个接收通道在完成一次检测后暂时锁定，直至左右信号均被接收且超声波发生器处于静默期。
 
-当左右接收器均完成一次有效触发后，系统计算左右信号的到达时间差，并将其作为后续方向控制的输入量。
+当左右接收器均完成一次有效触发后，系统计算左右信号的到达时间差，并时间差映射到\texttt{q15\_t}，作为后续方向控制的输入量。
 为增强系统的稳定性，对时间差数据设置限幅，避免异常信号对控制过程产生过大影响。
 
 \subsection{PID 方向控制算法}
 
 系统采用经典 PID 控制算法对小车的转向进行控制。
 控制目标为使左右超声波接收信号的到达时间差趋近于零，即小车正对超声波声源方向。
-PID 控制器以时间差作为反馈量，输出为转向控制量。
+将映射后的时间差变量再次映射到 $[-1,1]$ 区间， PID 控制器将其作为反馈量，输出运算结果。
+运算结果经算法低通滤波后，根据 \texttt{analogWrite()} 函数输入范围，线性放大为电机控制量。
 
 在实现中， PID 控制器采用位置式算法结构，并引入积分限幅与输出限幅机制，以防止积分饱和和控制输出过大。
 PID 参数通过实验整定获得，在实验运行速度范围内能够保证系统稳定运行。
@@ -223,7 +224,7 @@ PID 参数通过实验整定获得，在实验运行速度范围内能够保证�
 在驱动方式上，电机仅支持单方向转动，转速由单路 PWM 信号控制。
 通过提高一侧电机转速并降低另一侧电机转速，实现小车的转向控制。
 
-为提高系统稳定性，电机 PWM 信号的更新频率受到时间间隔限制，避免因控制量快速变化导致电机频繁调整，从而提升整体运行平滑性。
+为提高系统稳定性，电机 \texttt{PWM} 信号的更新频率受到时间间隔限制，避免因控制量快速变化导致电机频繁调整，从而提升整体运行平滑性。
 
 \subsection{搜索模式与状态切换机制}
 
@@ -267,26 +268,14 @@ PID 参数通过实验整定获得，在实验运行速度范围内能够保证�
 \subsection{main\_controller.h}
 \lstinputlisting[language=C++,caption={主控制器头文件 main\_controller.h}]{../Ultrasonic_Vehicle_2025/src/main_controller.h}
 
-\subsection{main\_controller.cpp}
-\lstinputlisting[language=C++,caption={主控制器代码实现 main\_controller.cpp}]{../Ultrasonic_Vehicle_2025/src/main_controller.cpp}
-
 \subsection{motor\_controller.h}
 \lstinputlisting[language=C++,caption={电机控制模块头文件 motor\_controller.h}]{../Ultrasonic_Vehicle_2025/src/motor_controller.h}
-
-\subsection{motor\_controller.cpp}
-\lstinputlisting[language=C++,caption={电机控制模块代码实现 motor\_controller.cpp}]{../Ultrasonic_Vehicle_2025/src/motor_controller.cpp}
 
 \subsection{ultrasonic\_controller.h}
 \lstinputlisting[language=C++,caption={超声波检测模块头文件 ultrasonic\_controller.h}]{../Ultrasonic_Vehicle_2025/src/ultrasonic_controller.h}
 
-\subsection{ultrasonic\_controller.cpp}
-\lstinputlisting[language=C++,caption={超声波检测模块代码实现 ultrasonic\_controller.cpp}]{../Ultrasonic_Vehicle_2025/src/ultrasonic_controller.cpp}
-
 \subsection{pid\_controller.h}
 \lstinputlisting[language=C++,caption={PID 控制器头文件 pid\_controller.h}]{../Ultrasonic_Vehicle_2025/src/pid_controller.h}
-
-\subsection{pid\_controller.cpp}
-\lstinputlisting[language=C++,caption={PID 控制器代码实现 pid\_controller.cpp}]{../Ultrasonic_Vehicle_2025/src/pid_controller.cpp}
 
 \subsection{config.h}
 \lstinputlisting[language=C++,caption={系统参数配置文件 config.h}]{../Ultrasonic_Vehicle_2025/src/config.h}
